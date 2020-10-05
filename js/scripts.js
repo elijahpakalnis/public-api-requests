@@ -15,10 +15,15 @@ fetch('https://randomuser.me/api/?results=12&nat=us')
     createSearchBar(); // create searchbar
     createPeopleCards(data.results); // create people cards
  })
- .catch(err => console.error('Failed to get Data'));
-
+ .catch(err => displayFailedFetch(err));
 
 // == HELPER FUNCTIONS ==
+// function to display error message if fetching fails
+const displayFailedFetch = (err) => {
+  const errorH1 = `<h1 class="failed-fetch">${err} :( No data from the API...</h1>`;
+  galleryRef.innerHTML = errorH1;
+};
+
 // function to refactor some properties of fetched users from API
 const refactorFetchedUsers = (users) => {
   return users.map(user => {
@@ -30,6 +35,14 @@ const refactorFetchedUsers = (users) => {
     user.phone = user.phone.replace('-', ' ');
     return user;
   });
+};
+
+// function to determine whether to display prev/next buttons on modal
+const displayBtn = (btn, person) => {
+  let index = fetchedUsers.findIndex(user => user.email === person.email);
+  // if user index = first(hide prev btn) or last(hide next btn)
+  if(btn === 'prev' && index === 0) return 'none';
+  if(btn === 'next' && index === fetchedUsers.length-1) return 'none';
 }
 
 // function to filter users by search input
@@ -41,7 +54,7 @@ const filterSearchResults = search => {
     return search.test(user.name.fullName.toLowerCase());
   });
   return filteredResults;
-}
+};
 
 
 // == HTML CREATION FUNCTIONS ==
@@ -54,7 +67,7 @@ const createSearchBar = () => {
     </form> 
   `;
   searchContainerRef.insertAdjacentHTML('beforeend', searchBarHTML);
-}
+};
 
 // function to create people cards
 const createPeopleCards = (peopleArray) => {
@@ -99,15 +112,14 @@ const createPersonModal = (person) => {
       </div>
 
       <div class="modal-btn-container">
-        <button type="button" id="modal-prev" class="modal-prev btn">Prev</button>
-        <button type="button" id="modal-next" class="modal-next btn">Next</button>
+        <button type="button" id="modal-prev" class="modal-prev btn" style="display: ${displayBtn('prev', person)}">Prev</button>
+        <button type="button" id="modal-next" class="modal-next btn" style="display: ${displayBtn('next', person)}">Next</button>
        </div>
     </div>
 `;
   // insert modal html into modal container
   modalContainerRef.innerHTML = modalHTML;
 };
-
 
 // == CALLBACK FUNCTIONS == 
 // clicking one of users create modal
@@ -124,8 +136,7 @@ const userClickCallback = e => {
     modalContainerRef.style.display = 'inherit';
     createPersonModal(fetchedUsers[curIndex]);
   }
-}
-
+};
 
 // callback for clicks in users modal
 const modalCallback = e => {
@@ -167,7 +178,7 @@ const searchSubmitCallback = () => {
   // filter and display users based on search results
   const filtered = filterSearchResults(search);
   createPeopleCards(filtered);
-}
+};
 
 
 // == EVENT LISTENERS ==
